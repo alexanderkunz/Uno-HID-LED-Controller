@@ -53,7 +53,7 @@ public:
 	
 	void begin(void);
 	void end(void);
-	void write(void);
+	bool write(void);
 	void press(uint8_t b);
 	void release(uint8_t b);
 	void releaseAll(void);
@@ -70,7 +70,7 @@ protected:
 	
 	HID_CustomGamepadReport_Data_t _report;
     
-    virtual void SendReport(void* data, int length);
+    bool SendReport(void* data, int length);
 };
 extern CustomGamepad_ CustomGamepad;
 

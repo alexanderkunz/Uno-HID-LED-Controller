@@ -303,8 +303,8 @@ bool CustomGamepad_::setup(USBSetup& setup)
 	return false;
 }
 
-void CustomGamepad_::SendReport(void* data, int length){
-	USB_Send(pluggedEndpoint | TRANSFER_RELEASE, data, length);
+bool CustomGamepad_::SendReport(void* data, int length){
+	return USB_Send(pluggedEndpoint | TRANSFER_RELEASE, data, length) > 0;
 }
 
 void CustomGamepad_::begin(void){
@@ -316,8 +316,8 @@ void CustomGamepad_::end(void){
 	SendReport(&_report, sizeof(_report));
 }
 
-void CustomGamepad_::write(void){ 
-	SendReport(&_report, sizeof(_report)); 
+bool CustomGamepad_::write(void){ 
+	return SendReport(&_report, sizeof(_report)); 
 }
 
 CustomGamepad_ CustomGamepad;

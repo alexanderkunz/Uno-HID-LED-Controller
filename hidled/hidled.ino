@@ -23,7 +23,8 @@ void setup() {
 void loop() {
   
   // send report
-  CustomGamepad.write();
+  if (!CustomGamepad.write())
+    CustomGamepad.led_data = 0;
   
   // Number of microseconds between HID reports
   // 2000 = 500hz
