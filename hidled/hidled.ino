@@ -55,6 +55,7 @@ void setup() {
   
   // setup serial
   Serial.begin(115200);
+  Serial.setTimeout(500);
   delay(500);
 }
 
@@ -62,7 +63,9 @@ void loop() {
   
   // read two bytes
   uint8_t data[2];
-  while (Serial.readBytes(data, 2) < 2);
+  if (Serial.readBytes(data, 2) < 2)
+    for (int n = 0; n < sizeof(data); n++)
+      data[n] = 0;
 
   // output all bits
   for (int i = 0; i < 8; i++) {
