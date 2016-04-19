@@ -41,22 +41,27 @@ void loop() {
 // CODE FOR UNO
 /////////////////////////////////////////////
 #if defined(__AVR_ATmega328P__)
+#include "SoftPWM.h"
+
+byte pin_state[16];
 
 void setup() {
 
-  // setup 16 pins as output
-  for (int i = 2; i < 18; i++) {
-    pinMode(i, OUTPUT);
+  // setup PWM
+  SoftPWMBegin();
+
+  // setup 16 pins as PWM
+  for (int i = 0; i < 16; i++) {
+    pin_state[i] = 0;
     if (i % 2)
-      digitalWrite(i, LOW);
+      SoftPWMSet(i + 2, 128);
     else
-      digitalWrite(i, HIGH);
+      SoftPWMSet(i + 2, 255);
   }
   
   // setup serial
   Serial.begin(115200);
   Serial.setTimeout(500);
-  delay(500);
 }
 
 void loop() {
@@ -67,16 +72,15 @@ void loop() {
     for (int n = 0; n < sizeof(data); n++)
       data[n] = 0;
 
-  // output all bits
+  // write data to state
   for (int i = 0; i < 8; i++) {
-    if (data[1] & (1 << i))
-      digitalWrite(2 + i, HIGH);
-    else
-      digitalWrite(2 + i, LOW);
-    if (data[0] & (1 << i))
-      digitalWrite(10 + i, HIGH);
-    else
-      digitalWrite(10 + i, LOW);
+    pin_state[7 - i] = ((data[0] & (1 << i)) > 0) ? 255 : 0;
+    pin_state[15 - i] = ((data[1] & (1 << i)) > 0) ? 255 : 0;
+  }
+
+  // set PWM state
+  for (int i = 0; i < 16; i++) {
+    SoftPWMSet(i + 2, pin_state[i]);
   }
 }
 
