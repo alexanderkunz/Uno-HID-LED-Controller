@@ -44,8 +44,13 @@ void loop() {
 #include "SoftPWM.h"
 
 byte pin_state[16];
+const int fade_enable_pin = 18;
+const int fade_speed = 4;
 
 void setup() {
+
+  // setup pins
+  pinMode(fade_enable_pin, INPUT_PULLUP);
 
   // setup PWM
   SoftPWMBegin();
@@ -65,18 +70,40 @@ void setup() {
 }
 
 void loop() {
-  
-  // read two bytes
-  uint8_t data[2];
-  if (Serial.readBytes(data, 2) < 2)
-    for (int n = 0; n < sizeof(data); n++)
-      data[n] = 0;
 
-  // write data to state
-  for (int i = 0; i < 8; i++) {
-    pin_state[7 - i] = ((data[0] & (1 << i)) > 0) ? 255 : 0;
-    pin_state[15 - i] = ((data[1] & (1 << i)) > 0) ? 255 : 0;
+  // check if fade is enabled
+  bool fade_enable = !digitalRead(fade_enable_pin);
+
+  // update fade
+  if (fade_enable)
+    for (int i = 0; i < 16; i++)
+      if (pin_state[i] > fade_speed)
+        pin_state[i] -= fade_speed;
+      else
+        pin_state[i] = 0;
+  
+  // check serial
+  if (Serial.available()) {
+    // read two bytes
+    uint8_t data[2];
+    if (Serial.readBytes(data, 2) < 2)
+      for (int n = 0; n < sizeof(data); n++)
+        data[n] = 0;
+  
+    // write data to state
+    for (int i = 0; i < 8; i++) {
+      if (data[0] & (1 << i))
+        pin_state[i + 0] = 255;
+      else if (!fade_enable)
+        pin_state[i + 0] = 0;
+      if (data[1] & (1 << i))
+        pin_state[i + 8] = 255;
+      else if (!fade_enable)
+        pin_state[i + 8] = 0;
+    }
   }
+  else if (fade_enable)
+    delay(1);
 
   // set PWM state
   for (int i = 0; i < 16; i++) {
